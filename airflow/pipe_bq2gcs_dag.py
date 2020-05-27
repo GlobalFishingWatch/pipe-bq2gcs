@@ -12,6 +12,7 @@ from jinja2 import Template
 from jsonschema import validate
 
 import json
+import os
 import re
 
 PIPELINE = "pipe_bq2gcs"
