@@ -94,24 +94,25 @@ class PipeBq2GcsDagFactory(DagFactory):
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
 
             # Replace this if with a simple detect if the table is partitioned or not.
-            if self.config['source_type']=='custom':
+            if self.config['sensor_type']=='custom':
                 sensor = table_custom_check(
                     '{sensor_jinja_query}'.format(**self.config),
                     date_ranges)
-            elif self.config['source_type'] == 'partitioning':
+            elif self.config['sensor_type'] == 'partitioning':
+                table_path=self.config['sensor_jinja_query'].split('.')
                 sensor = table_partition_check(
                     '{project_id}'.format(**self.config),
-                    '{source_dataset}'.format(**self.config),
-                    '{sensor_table}'.format(**self.config),
+                    '{}'.format(table_path[0]),
+                    '{}'.format(table_path[1]),
                     '{ds_nodash}'.format(**self.config))
             else:
+                table_path=self.config['sensor_jinja_query'].split('.')
                 sensor = self.table_sensor(
                     dag=dag,
-                    task_id='sharded_exists_{sensor_table}'.format(**self.config),
+                    task_id='sharded_exists_{}'.format(table_path[1]),
                     project='{project_id}'.format(**self.config),
-                    dataset='{source_dataset}'.format(**self.config),
-                    table='{sensor_table}{ds_nodash}'.format(**self.config)
-                )
+                    dataset='{}'.format(table_path[0]),
+                    table='{}'.format(table_path[1]))
 
             exporter = self.build_docker_task({
                 'task_id':'exporter_{name}'.format(**config),
