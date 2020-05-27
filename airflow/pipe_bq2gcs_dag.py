@@ -90,23 +90,24 @@ class PipeBq2GcsDagFactory(DagFactory):
     def build(self, mode):
         dag_id = '{}_{}'.format(self.pipeline, mode)
         date_ranges=",".join(self.source_date_range()+self.source_date_range(True))
+        export_config=self.config['export_config']
 
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
 
             # Replace this if with a simple detect if the table is partitioned or not.
             if self.config['sensor_type']=='custom':
                 sensor = table_custom_check(
-                    '{sensor_jinja_query}'.format(**self.config),
+                    '{sensor_jinja_query}'.format(**export_config),
                     date_ranges)
-            elif self.config['sensor_type'] == 'partitioning':
-                table_path=self.config['sensor_jinja_query'].split('.')
+            elif export_config['sensor_type'] == 'partitioning':
+                table_path=export_config['sensor_jinja_query'].split('.')
                 sensor = table_partition_check(
                     '{project_id}'.format(**self.config),
                     '{}'.format(table_path[0]),
                     '{}'.format(table_path[1]),
                     '{ds_nodash}'.format(**self.config))
             else:
-                table_path=self.config['sensor_jinja_query'].split('.')
+                table_path=export_config['sensor_jinja_query'].split('.')
                 sensor = self.table_sensor(
                     dag=dag,
                     task_id='sharded_exists_{}'.format(table_path[1]),
@@ -115,21 +116,21 @@ class PipeBq2GcsDagFactory(DagFactory):
                     table='{}'.format(table_path[1]))
 
             exporter = self.build_docker_task({
-                'task_id':'exporter_{name}'.format(**config),
+                'task_id':'exporter_{name}'.format(**export_config),
                 'pool':'k8operators_limit',
                 'docker_run':'{docker_run}'.format(**self.config),
                 'image':'{docker_image}'.format(**self.config),
-                'name':'bq2gcs-{name}'.format(**config),
+                'name':'bq2gcs-{name}'.format(**export_config),
                 'dag':dag,
                 'arguments':['bq2gcs',
-                             '{name}'.format(**self.config),
-                             '{jinja_query}'.format(**self.config),
+                             '{name}'.format(**export_config),
+                             '{jinja_query}'.format(**export_config),
                              '{}'.format(date_ranges),
-                             '{gcs_output}'.format(**self.config)]
+                             '{gcs_output}'.format(**export_config)]
             })
 
 
-            sensor >> tileset_generator_input
+            sensor >> exporter
 
             return dag
 
