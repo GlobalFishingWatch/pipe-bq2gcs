@@ -8,6 +8,6 @@ python $AIRFLOW_HOME/utils/set_default_variables.py \
     pipeline_bucket="{{ var.value.PIPELINE_BUCKET }}" \
     pipeline_dataset="{{ var.value.PIPELINE_DATASET }}" \
     temp_dataset="{{ var.value.TEMP_DATASET }}" \
-    export_configurations="ARRAY OF CONFIGURATIONS"
+    export_configs="ARRAY OF CONFIGURATIONS"
 
 echo "Installation Complete"
