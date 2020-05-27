@@ -114,7 +114,7 @@ class PipeBq2GcsDagFactory(DagFactory):
 
             exporter = self.build_docker_task({
                 'task_id':'exporter_{name}'.format(**config),
-                'pool':'k8operators_limit'
+                'pool':'k8operators_limit',
                 'docker_run':'{docker_run}'.format(**self.config),
                 'image':'{docker_image}'.format(**self.config),
                 'name':'bq2gcs-{name}'.format(**config),
