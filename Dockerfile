@@ -8,7 +8,6 @@ WORKDIR /opt/project
 # https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
 ENV CLOUD_SDK_VERSION=292.0.0
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
-ENV GOLANG_VERSION="go1.14.linux-amd64"
 RUN apt-get -qqy update && apt-get install -qqy \
         curl \
         gcc \
@@ -30,12 +29,13 @@ RUN apt-get -qqy update && apt-get install -qqy \
        && gcloud --version
 
 #GoLang
-RUN wget -q https://dl.google.com/go/${GOLANG_VERSION}.tar.gz && \
-    tar -C /usr/local -xzf ${GOLANG_VERSION}.tar.gz && \
-    rm -f ${GOLANG_VERSION}.tar.gz
-ENV PATH /usr/local/go/bin:$PATH
-ENV GOPATH /usr/local/go/workspace
-ENV PATH /usr/local/go/workspace/bin:$PATH
+# ENV GOLANG_VERSION="go1.14.linux-amd64"
+# RUN wget -q https://dl.google.com/go/${GOLANG_VERSION}.tar.gz && \
+#     tar -C /usr/local -xzf ${GOLANG_VERSION}.tar.gz && \
+#     rm -f ${GOLANG_VERSION}.tar.gz
+# ENV PATH /usr/local/go/bin:$PATH
+# ENV GOPATH /usr/local/go/workspace
+# ENV PATH /usr/local/go/workspace/bin:$PATH
 
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]
