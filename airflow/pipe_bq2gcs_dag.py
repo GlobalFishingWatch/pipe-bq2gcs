@@ -95,7 +95,7 @@ class PipeBq2GcsDagFactory(DagFactory):
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
 
             # Replace this if with a simple detect if the table is partitioned or not.
-            if self.config['sensor_type']=='custom':
+            if export_config['sensor_type']=='custom':
                 sensor = table_custom_check(
                     '{sensor_jinja_query}'.format(**export_config),
                     date_ranges)
