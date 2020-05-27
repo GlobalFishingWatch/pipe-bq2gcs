@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "export_configs": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "gcs_output": {
+              "type": "string"
+            },
+            "jinja_query": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "sensor_jinja_query": {
+              "type": "string"
+            },
+            "sensor_type": {
+              "type": "string",
+              "enum": ["sharded", "partitioning", "custom"]
+            }
+          },
+          "required": [
+            "gcs_output",
+            "jinja_query",
+            "name",
+            "sensor_jinja_query",
+            "sensor_type"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}
