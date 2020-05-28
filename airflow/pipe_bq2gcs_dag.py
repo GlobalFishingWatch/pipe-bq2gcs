@@ -124,7 +124,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                     project='{project_id}'.format(**self.config),
                     dataset='{}'.format(table_path[0]),
                     table='{}'.format(table_path[1]),
-                    '{ds_nodash}'.format(**self.config))
+                    date='{ds_nodash}'.format(**self.config))
 
             exporter = self.build_docker_task({
                 'task_id':'exporter_{name}'.format(**export_config),
