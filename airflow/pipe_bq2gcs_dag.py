@@ -81,7 +81,7 @@ class PipeBq2GcsDagFactory(DagFactory):
         date_range=date_range_map[self.schedule_interval]
         return re.sub('{{ ([^ ]*) }}','{{ \\1_nodash }}', date_range).split(",") if nodash else date_range.split(",")
 
-    def jinja_eval(self, message, date_range):
+    def jinja_eval(self, message, date_ranges):
         return Template(message).render(
             start_yyyymmdd=date_ranges[0],
             end_yyyymmdd=date_ranges[1],
