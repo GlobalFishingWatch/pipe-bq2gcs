@@ -46,6 +46,7 @@ echo "Saves the jinja_query in a temporal file."
 TEMP_FILE=$(mktemp)
 echo "${JINJA_QUERY}" > ${TEMP_FILE}
 echo "Saved in ${TEMP_FILE}"
+cat ${TEMP_FILE}
 
 #################################################################
 # Run jinja_query and save it in temporal table.
@@ -56,6 +57,14 @@ IFS=, read START_DATE END_DATE START_DATE_NODASH END_DATE_NODASH <<<"${DATE_RANG
 TEMPORAL_DATASET="0_ttl24h"
 TEMPORAL_TABLE=${TEMPORAL_DATASET}.${NAME//-/_}
 echo "TEMPORAL_TABLE=${TEMPORAL_TABLE}"
+
+echo "=== Evaluation with jinja ==="
+jinja2 ${TEMP_FILE} \
+   -D start_yyyymmdd_nodash=${START_DATE_NODASH} \
+   -D end_yyyymmdd_nodash=${END_DATE_NODASH} \
+   -D start_yyyymmdd=${START_DATE} \
+   -D end_yyyymmdd=${END_DATE}
+echo "=== Evaluation with jinja ==="
 
 jinja2 ${TEMP_FILE} \
    -D start_yyyymmdd_nodash=${START_DATE_NODASH} \
