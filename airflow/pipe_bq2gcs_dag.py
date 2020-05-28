@@ -113,7 +113,8 @@ class PipeBq2GcsDagFactory(DagFactory):
                     task_id='sharded_exists_{}'.format(table_path[1]),
                     project='{project_id}'.format(**self.config),
                     dataset='{}'.format(table_path[0]),
-                    table='{}'.format(table_path[1]))
+                    table='{}'.format(table_path[1]),
+                    '{ds_nodash}'.format(**self.config))
 
             exporter = self.build_docker_task({
                 'task_id':'exporter_{name}'.format(**export_config),
