@@ -43,7 +43,7 @@ done
 # Save jinja_query in a temporal file.
 #################################################################
 echo "Saves the jinja_query in a temporal file."
-TEMP_FILE=$(mktemp)
+TEMP_FILE="$(mktemp).j2.sql"
 echo "${JINJA_QUERY}" > ${TEMP_FILE}
 echo "Saved in ${TEMP_FILE}"
 cat ${TEMP_FILE}
@@ -52,7 +52,6 @@ cat ${TEMP_FILE}
 # Run jinja_query and save it in temporal table.
 #################################################################
 echo "Run jinja_query and save it in temporal table."
-TEMP_FILE=$(mktemp)
 IFS=, read START_DATE END_DATE START_DATE_NODASH END_DATE_NODASH <<<"${DATE_RANGE}"
 TEMPORAL_DATASET="0_ttl24h"
 TEMPORAL_TABLE=${TEMPORAL_DATASET}.${NAME//-/_}
