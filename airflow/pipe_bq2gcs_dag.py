@@ -30,16 +30,10 @@ def table_partition_check(project_id, dataset_id, table_id, date):
         on_failure_callback=config_tools.failure_callback_gfw
     )
 
-def table_custom_check(jinja_query, date_ranges_str):
-    date_ranges=date_ranges_str.split(",")
+def table_custom_check(jinja_query):
     return BigQueryCheckOperator(
         task_id='custom_check',
-        sql=Template(jinja_query).render(
-            start_yyyymmdd=date_ranges[0],
-            end_yyyymmdd=date_ranges[1],
-            start_yyyymmdd_nodash=date_ranges[2],
-            end_yyyymmdd_nodash=date_ranges[3]
-        ),
+        sql=jinja_query,
         retries=2*24*3,                        # Retries 3 days with 30 minutes.
         execution_timeout=timedelta(days=3),   # TimeOut of 3 days.
         retry_delay=timedelta(minutes=30),     # Delay in retries 30 minutes.
