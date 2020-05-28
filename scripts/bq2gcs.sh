@@ -40,19 +40,24 @@ done
 
 
 #################################################################
-# Save query in a temporal file.
+# Save jinja_query in a temporal file.
 #################################################################
-echo "Inserting new records for table ${TRACKS_TABLE}"
-echo "${JINJA_QUERY}" > ${ASSETS}/query.j2.sql
+echo "Saves the jinja_query in a temporal file."
+TEMP_FILE=$(mktemp)
+echo "${JINJA_QUERY}" > ${TEMP_FILE}
+echo "Saved in ${TEMP_FILE}"
 
 #################################################################
-# Save query in a temporal file.
+# Run jinja_query and save it in temporal table.
 #################################################################
+echo "Run jinja_query and save it in temporal table."
+TEMP_FILE=$(mktemp)
 IFS=, read START_DATE END_DATE START_DATE_NODASH END_DATE_NODASH <<<"${DATE_RANGE}"
 TEMPORAL_DATASET="0_ttl24h"
-TEMPORAL_TABLE=${TEMPORAL_DATASET}.${NAME}
+TEMPORAL_TABLE=${TEMPORAL_DATASET}.${NAME//-/_}
+echo "TEMPORAL_TABLE=${TEMPORAL_TABLE}"
 
-jinja2 ${ASSETS}/query.j2.sql \
+jinja2 ${TEMP_FILE} \
    -D start_yyyymmdd_nodash=${START_DATE_NODASH} \
    -D end_yyyymmdd_nodash=${END_DATE_NODASH} \
    -D start_yyyymmdd=${START_DATE} \
