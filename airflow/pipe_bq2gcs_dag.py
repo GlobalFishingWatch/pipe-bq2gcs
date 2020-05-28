@@ -87,22 +87,30 @@ class PipeBq2GcsDagFactory(DagFactory):
         date_range=date_range_map[self.schedule_interval]
         return re.sub('{{ ([^ ]*) }}','{{ \\1_nodash }}', date_range).split(",") if nodash else date_range.split(",")
 
+    def jinja_eval(self, message, date_range):
+        return Template(message).render(
+            start_yyyymmdd=date_ranges[0],
+            end_yyyymmdd=date_ranges[1],
+            start_yyyymmdd_nodash=date_ranges[2],
+            end_yyyymmdd_nodash=date_ranges[3]
+        )
+
     def build(self, mode):
         dag_id = '{}_{}'.format(self.pipeline, mode)
         date_ranges=",".join(self.source_date_range()+self.source_date_range(True))
         export_config=self.config['export_config']
+        export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges)
+        table_path=export_config['sensor_jinja_query'].split('.')
 
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
 
             # Replace this if with a simple detect if the table is partitioned or not.
             if export_config['sensor_type']=='custom':
-                sensor = table_custom_check(
-                    '{sensor_jinja_query}'.format(**export_config),
-                    date_ranges)
+                export_config['source_jinja_query_parsed']=self.jinja_eval(export_config['source_jinja_query'], date_ranges)
+                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config))
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
-                table_path=export_config['sensor_jinja_query'].split('.')
                 sensor = table_partition_check(
                     '{project_id}'.format(**self.config),
                     '{}'.format(table_path[0]),
@@ -110,7 +118,6 @@ class PipeBq2GcsDagFactory(DagFactory):
                     '{ds_nodash}'.format(**self.config))
             else:
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
-                table_path=export_config['sensor_jinja_query'].split('.')
                 sensor = self.table_sensor(
                     dag=dag,
                     task_id='sharded_exists_{}'.format(table_path[1]),
@@ -128,7 +135,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 'dag':dag,
                 'arguments':['bq2gcs',
                              '{name}'.format(**export_config),
-                             '{jinja_query}'.format(**export_config),
+                             '{jinja_query_parsed}'.format(**export_config),
                              '{}'.format(date_ranges),
                              '{gcs_output}'.format(**export_config)]
             })

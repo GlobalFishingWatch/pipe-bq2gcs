@@ -42,11 +42,11 @@ done
 #################################################################
 # Save jinja_query in a temporal file.
 #################################################################
-echo "Saves the jinja_query in a temporal file."
-TEMP_FILE="$(mktemp).j2.sql"
-echo "${JINJA_QUERY}" > ${TEMP_FILE}
-echo "Saved in ${TEMP_FILE}"
-cat ${TEMP_FILE}
+# echo "Saves the jinja_query in a temporal file."
+# TEMP_FILE="$(mktemp).j2.sql"
+# echo "${JINJA_QUERY}" > ${TEMP_FILE}
+# echo "Saved in ${TEMP_FILE}"
+# cat ${TEMP_FILE}
 
 #################################################################
 # Run jinja_query and save it in temporal table.
@@ -58,18 +58,10 @@ TEMPORAL_TABLE=${TEMPORAL_DATASET}.${NAME//-/_}
 echo "TEMPORAL_TABLE=${TEMPORAL_TABLE}"
 
 echo "=== Evaluation with jinja ==="
-jinja2 ${TEMP_FILE} \
-   -D start_yyyymmdd_nodash=${START_DATE_NODASH} \
-   -D end_yyyymmdd_nodash=${END_DATE_NODASH} \
-   -D start_yyyymmdd=${START_DATE} \
-   -D end_yyyymmdd=${END_DATE}
+echo "${JINJA_QUERY}"
 echo "=== Evaluation with jinja ==="
 
-jinja2 ${TEMP_FILE} \
-   -D start_yyyymmdd_nodash=${START_DATE_NODASH} \
-   -D end_yyyymmdd_nodash=${END_DATE_NODASH} \
-   -D start_yyyymmdd=${START_DATE} \
-   -D end_yyyymmdd=${END_DATE} \
+echo "${JINJA_QUERY}" \
    | bq --headless query \
     -n 0 \
     --nouse_legacy_sql \
