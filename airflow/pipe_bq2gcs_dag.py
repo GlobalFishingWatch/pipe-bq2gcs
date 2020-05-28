@@ -100,7 +100,7 @@ class PipeBq2GcsDagFactory(DagFactory):
 
             # Replace this if with a simple detect if the table is partitioned or not.
             if export_config['sensor_type']=='custom':
-                export_config['source_jinja_query_parsed']=self.jinja_eval(export_config['source_jinja_query'], date_ranges)
+                export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges)
                 sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config))
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
