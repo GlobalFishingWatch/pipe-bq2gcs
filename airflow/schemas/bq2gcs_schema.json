@@ -22,7 +22,7 @@
             "sensor_type": {
               "type": "string",
               "enum": ["sharded", "partitioning", "custom"]
-            }
+            },
             "output_format": {
               "type": "string",
               "default": "CSV",
