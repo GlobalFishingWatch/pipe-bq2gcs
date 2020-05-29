@@ -23,6 +23,11 @@
               "type": "string",
               "enum": ["sharded", "partitioning", "custom"]
             }
+            "output_format": {
+              "type": "string",
+              "default": "CSV",
+              "enum": ["CSV", "NEWLINE_DELIMITED_JSON"]
+            }
           },
           "required": [
             "gcs_output_folder",

@@ -12,6 +12,7 @@ ARGS=(\
     JINJA_QUERY \
     DATE_RANGE \
     GCS_OUTPUT_FOLDER \
+    DESTINATION_FORMAT \
 )
 
 echo -e "\nRunning:\n${PROCESS}.sh $@ \n"
@@ -22,6 +23,7 @@ display_usage() {
   echo -e "JINJA_QUERY: Jinja query to get the data to export."
   echo -e "DATE_RANGE: The date range to be queried. The format will be YYYY-MM-DD,YYYY-MM-DD."
   echo -e "GCS_OUTPUT_FOLDER: The Google Cloud Storage destination folder where will be stored the data."
+  echo -e "DESTINATION_FORMAT: Destination format of the file."
   echo
 }
 
@@ -67,8 +69,15 @@ echo "  Inserted results in table ${TEMPORAL_TABLE}"
 #################################################################
 # Export the results to GCS.
 #################################################################
-GCS_PATH=${GCS_OUTPUT_FOLDER}/${NAME}_${START_DATE_NODASH}_${END_DATE_NODASH}.csv
-bq extract ${TEMPORAL_TABLE} ${GCS_PATH}
+EXTENSION="csv"
+EXTRACT_PARAMS=""
+if [ "${DESTINATION_FORMAT}" != "CSV" ]
+then
+  EXTENSION="json"
+  EXTRACT_PARAMS="--destination_format ${DESTINATION_FORMAT}"
+fi
+GCS_PATH=${GCS_OUTPUT_FOLDER}/${NAME}_${START_DATE_NODASH}_${END_DATE_NODASH}.${EXTENSION}
+bq extract ${EXTRACT_PARAMS} ${TEMPORAL_TABLE} ${GCS_PATH}
 if [ "$?" -ne 0 ]; then
   echo "  Unable to extract data from temporal table ${TEMPORAL_TABLE} to ${GCS_PATH}"
   exit 1
