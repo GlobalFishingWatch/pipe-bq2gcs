@@ -34,6 +34,7 @@ def table_custom_check(jinja_query):
     return BigQueryCheckOperator(
         task_id='custom_check',
         sql=jinja_query,
+        use_legacy_sql=False,
         retries=2*24*3,                        # Retries 3 days with 30 minutes.
         execution_timeout=timedelta(days=3),   # TimeOut of 3 days.
         retry_delay=timedelta(minutes=30),     # Delay in retries 30 minutes.
