@@ -11,17 +11,17 @@ ARGS=(\
     NAME \
     JINJA_QUERY \
     DATE_RANGE \
-    GCS_FOLDER \
+    GCS_OUTPUT_FOLDER \
 )
 
 echo -e "\nRunning:\n${PROCESS}.sh $@ \n"
 
 display_usage() {
-  echo -e "\nUsage:\nbq2gcs.sh NAME JINJA_QUERY DATE_RANGE GCS_FOLDER\n"
+  echo -e "\nUsage:\nbq2gcs.sh NAME JINJA_QUERY DATE_RANGE GCS_OUTPUT_FOLDER\n"
   echo -e "NAME: Name to locate the kind of export and also used as temporal table name."
   echo -e "JINJA_QUERY: Jinja query to get the data to export."
   echo -e "DATE_RANGE: The date range to be queried. The format will be YYYY-MM-DD,YYYY-MM-DD."
-  echo -e "GCS_FOLDER: The Google Cloud Storage destination folder where will be stored the data."
+  echo -e "GCS_OUTPUT_FOLDER: The Google Cloud Storage destination folder where will be stored the data."
   echo
 }
 
@@ -38,15 +38,6 @@ for index in ${!ARGS[*]}; do
   declare "${ARGS[$index]}"="${ARG_VALUES[$index]}"
 done
 
-
-#################################################################
-# Save jinja_query in a temporal file.
-#################################################################
-# echo "Saves the jinja_query in a temporal file."
-# TEMP_FILE="$(mktemp).j2.sql"
-# echo "${JINJA_QUERY}" > ${TEMP_FILE}
-# echo "Saved in ${TEMP_FILE}"
-# cat ${TEMP_FILE}
 
 #################################################################
 # Run jinja_query and save it in temporal table.
@@ -76,10 +67,10 @@ echo "  Inserted results in table ${TEMPORAL_TABLE}"
 #################################################################
 # Export the results to GCS.
 #################################################################
-GCS_PATH=${GCS_FOLDER}/${NAME}_${START_DATE_NODASH}_${END_DATE_NODASH}.csv
+GCS_PATH=${GCS_OUTPUT_FOLDER}/${NAME}_${START_DATE_NODASH}_${END_DATE_NODASH}.csv
 bq extract ${TEMPORAL_TABLE} ${GCS_PATH}
 if [ "$?" -ne 0 ]; then
   echo "  Unable to extract data from temporal table ${TEMPORAL_TABLE} to ${GCS_PATH}"
   exit 1
 fi
-echo "  Data in ${GCS_PATH}"
+echo "  Data successfully stored in GCS: <${GCS_PATH}>"

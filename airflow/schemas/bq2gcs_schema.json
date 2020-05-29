@@ -7,7 +7,7 @@
         {
           "type": "object",
           "properties": {
-            "gcs_output": {
+            "gcs_output_folder": {
               "type": "string"
             },
             "jinja_query": {
@@ -25,7 +25,7 @@
             }
           },
           "required": [
-            "gcs_output",
+            "gcs_output_folder",
             "jinja_query",
             "name",
             "sensor_jinja_query",

@@ -131,7 +131,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                              '{name}'.format(**export_config),
                              '{jinja_query_parsed}'.format(**export_config),
                              '{}'.format(date_ranges),
-                             '{gcs_output}'.format(**export_config)]
+                             '{gcs_output_folder}'.format(**export_config)]
             })
 
 

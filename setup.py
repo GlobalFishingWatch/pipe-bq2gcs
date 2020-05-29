@@ -14,7 +14,6 @@ package = __import__('pipe_bq2gcs')
 
 DEPENDENCIES = [
     "pipe-tools==3.1.1",
-    "jinja2-cli",
     "jinja2==2.11.2",
     "jsonschema==3.2.0"
 ]
