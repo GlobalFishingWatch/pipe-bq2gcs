@@ -105,7 +105,7 @@ class PipeBq2GcsDagFactory(DagFactory):
             if export_config['sensor_type']=='custom':
                 export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges.split(","))
                 print(export_config)
-                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**config))
+                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
@@ -133,7 +133,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 'dag':dag,
                 'arguments':['bq2gcs',
                              '{}_{}'.format(export_config['name'], mode),
-                             '{jinja_query_parsed}'.format(**export_config).format(**config),
+                             '{jinja_query_parsed}'.format(**export_config).format(**self.config),
                              '{}'.format(date_ranges),
                              '{gcs_output_folder}'.format(**export_config),
                              '{output_format}'.format(**export_config)]
