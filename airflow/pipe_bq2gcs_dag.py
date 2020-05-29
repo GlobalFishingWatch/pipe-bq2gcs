@@ -75,12 +75,12 @@ class PipeBq2GcsDagFactory(DagFactory):
         :type nodash bool.
         """
         date_range_map={
-            '@daily':'{{ds}},{{tomorrow_ds}}',
-            '@monthly':'{{first_day_of_month}},{{last_day_of_month}}',
-            '@yearly':'{{first_day_of_year}},{{last_day_of_year}}'
+            '@daily':'{ds},{tomorrow_ds}',
+            '@monthly':'{first_day_of_month},{last_day_of_month}',
+            '@yearly':'{first_day_of_year},{last_day_of_year}'
         }
         date_range=date_range_map[self.schedule_interval]
-        return '{},{}'.format(date_range, re.sub('{{([^\}]*)}}','{{\\1_nodash}}', date_range))
+        return '{},{}'.format(date_range, re.sub('{([^\}]*)}','{\\1_nodash}', date_range))
 
     def jinja_eval(self, message, date_ranges):
         return Template(message).render(
@@ -92,8 +92,8 @@ class PipeBq2GcsDagFactory(DagFactory):
 
     def build(self, mode):
         dag_id = '{}_{}'.format(self.pipeline, mode)
-        self.config['tomorrow_ds'] = '{{ (execution_date + macros.dateutil.relativedelta.relativedelta(days=1)).strftime("%Y-%m-%d")  }}'
-        self.config['tomorrow_ds_nodash'] = '{{ (execution_date + macros.dateutil.relativedelta.relativedelta(days=1)).strftime("%Y%m%d")  }}'
+        self.config['tomorrow_ds'] = '{{ tomorrow_ds  }}'
+        self.config['tomorrow_ds_nodash'] = '{{ tomorrow_ds_nodash  }}'
         date_ranges=self.source_date_range()
         export_config=self.config['export_config']
         export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges.split(","))
@@ -106,10 +106,8 @@ class PipeBq2GcsDagFactory(DagFactory):
             if export_config['sensor_type']=='custom':
                 export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges.split(","))
                 print('===================')
-                print(export_config['sensor_jinja_query_parsed'])
                 print('{sensor_jinja_query_parsed}'.format(**export_config))
                 print('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
-                print('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config).format(**self.config))
                 print('===================')
                 sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
             elif export_config['sensor_type'] == 'partitioning':
