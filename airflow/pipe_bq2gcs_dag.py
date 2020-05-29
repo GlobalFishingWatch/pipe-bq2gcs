@@ -92,8 +92,8 @@ class PipeBq2GcsDagFactory(DagFactory):
 
     def build(self, mode):
         dag_id = '{}_{}'.format(self.pipeline, mode)
-        config['tomorrow_ds'] = '{{ (execution_date + macros.dateutil.relativedelta.relativedelta(days=1)).strftime("%Y-%m-%d")  }}'
-        config['tomorrow_ds_nodash'] = '{{ (execution_date + macros.dateutil.relativedelta.relativedelta(days=1)).strftime("%Y%m%d")  }}'
+        self.config['tomorrow_ds'] = '{{ (execution_date + macros.dateutil.relativedelta.relativedelta(days=1)).strftime("%Y-%m-%d")  }}'
+        self.config['tomorrow_ds_nodash'] = '{{ (execution_date + macros.dateutil.relativedelta.relativedelta(days=1)).strftime("%Y%m%d")  }}'
         date_ranges=self.source_date_range()
         export_config=self.config['export_config']
         export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges.split(","))
