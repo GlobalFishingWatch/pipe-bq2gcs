@@ -67,7 +67,7 @@ class PipeBq2GcsDagFactory(DagFactory):
         super(PipeBq2GcsDagFactory, self).__init__(pipeline, **kwargs)
         self.pipeline = '{}_{name}'.format(self.pipeline,**self.config['export_config'])
 
-    def source_date_range(self, nodash=False):
+    def source_date_range(self):
         """
         Gives the date range separated by a comma.
         :param nodash if we need that value in nodash.
@@ -79,7 +79,7 @@ class PipeBq2GcsDagFactory(DagFactory):
             '@yearly':'{{ first_day_of_year }},{{ last_day_of_year }}'
         }
         date_range=date_range_map[self.schedule_interval]
-        return re.sub('{{ ([^ ]*) }}','{{ \\1_nodash }}', date_range).split(",") if nodash else date_range.split(",")
+        return '{},{}'.format(date_range, re.sub('{{ ([^ ]*) }}','{{ \\1_nodash }}', date_range))
 
     def jinja_eval(self, message, date_ranges):
         return Template(message).render(
@@ -91,16 +91,16 @@ class PipeBq2GcsDagFactory(DagFactory):
 
     def build(self, mode):
         dag_id = '{}_{}'.format(self.pipeline, mode)
-        date_ranges=",".join(self.source_date_range()+self.source_date_range(True))
+        date_ranges=self.source_date_range()
         export_config=self.config['export_config']
-        export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges)
+        export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges.split(","))
         table_path=export_config['sensor_jinja_query'].split('.')
 
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
 
             # Replace this if with a simple detect if the table is partitioned or not.
             if export_config['sensor_type']=='custom':
-                export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges)
+                export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges.split(","))
                 sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config))
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
