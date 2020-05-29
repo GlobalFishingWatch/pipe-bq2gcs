@@ -75,12 +75,12 @@ class PipeBq2GcsDagFactory(DagFactory):
         :type nodash bool.
         """
         date_range_map={
-            '@daily':'{{ ds }},{{ tomorrow_ds }}',
-            '@monthly':'{{ first_day_of_month }},{{ last_day_of_month }}',
-            '@yearly':'{{ first_day_of_year }},{{ last_day_of_year }}'
+            '@daily':'{ ds },{ tomorrow_ds }',
+            '@monthly':'{ first_day_of_month },{ last_day_of_month }',
+            '@yearly':'{ first_day_of_year },{ last_day_of_year }'
         }
         date_range=date_range_map[self.schedule_interval]
-        return '{},{}'.format(date_range, re.sub('{{ ([^ ]*) }}','{{ \\1_nodash }}', date_range))
+        return '{},{}'.format(date_range, re.sub('{ ([^ ]*) }','{ \\1_nodash }', date_range))
 
     def jinja_eval(self, message, date_ranges):
         return Template(message).render(
