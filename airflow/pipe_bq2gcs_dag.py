@@ -95,6 +95,7 @@ class PipeBq2GcsDagFactory(DagFactory):
         date_ranges=self.source_date_range()
         export_config=self.config['export_config']
         export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges.split(","))
+        export_config['output_format']=export_config.get('output_format','CSV')
         table_path=export_config['sensor_jinja_query'].split('.')
 
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
