@@ -75,12 +75,12 @@ class PipeBq2GcsDagFactory(DagFactory):
         :type nodash bool.
         """
         date_range_map={
-            '@daily':'{ ds },{ tomorrow_ds }',
-            '@monthly':'{ first_day_of_month },{ last_day_of_month }',
-            '@yearly':'{ first_day_of_year },{ last_day_of_year }'
+            '@daily':'{{ ds }},{{ tomorrow_ds }}',
+            '@monthly':'{{ first_day_of_month }},{{ last_day_of_month }}',
+            '@yearly':'{{ first_day_of_year }},{{ last_day_of_year }}'
         }
         date_range=date_range_map[self.schedule_interval]
-        return '{},{}'.format(date_range, re.sub('{ ([^ ]*) }','{ \\1_nodash }', date_range))
+        return '{},{}'.format(date_range, re.sub('{{ ([^ ]*) }}','{{ \\1_nodash }}', date_range))
 
     def jinja_eval(self, message, date_ranges):
         return Template(message).render(
@@ -105,7 +105,7 @@ class PipeBq2GcsDagFactory(DagFactory):
             if export_config['sensor_type']=='custom':
                 export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges.split(","))
                 print(export_config)
-                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
+                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**config))
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
@@ -133,7 +133,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 'dag':dag,
                 'arguments':['bq2gcs',
                              '{}_{}'.format(export_config['name'], mode),
-                             '{jinja_query_parsed}'.format(**export_config).format(**self.config),
+                             '{jinja_query_parsed}'.format(**export_config).format(**self.config).format(**self.config),
                              '{}'.format(date_ranges),
                              '{gcs_output_folder}'.format(**export_config),
                              '{output_format}'.format(**export_config)]
