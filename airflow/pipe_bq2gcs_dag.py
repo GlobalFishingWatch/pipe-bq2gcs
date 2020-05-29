@@ -129,7 +129,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 'name':'bq2gcs-{name}'.format(**export_config),
                 'dag':dag,
                 'arguments':['bq2gcs',
-                             '{name}'.format(**export_config),
+                             '{name}_{}'.format(**export_config,self.schedule_interval[1:]),
                              '{jinja_query_parsed}'.format(**export_config),
                              '{}'.format(date_ranges),
                              '{gcs_output_folder}'.format(**export_config)]
