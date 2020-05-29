@@ -107,7 +107,9 @@ class PipeBq2GcsDagFactory(DagFactory):
                 print(export_config['sensor_jinja_query_parsed'])
                 print('{sensor_jinja_query_parsed}'.format(**export_config))
                 print('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
-                print('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config).format(**self.config))
+                if mode != 'daily' {
+                    print('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config).format(**self.config))
+                }
                 print('===================')
                 sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
             elif export_config['sensor_type'] == 'partitioning':
