@@ -46,7 +46,6 @@ func (bq2gcs *Bq2gcs) Run() {
     fmt.Println("Unable to run the query and store the data in the temporal table. %v", err)
   }
 
-  return
   if bq2gcs.DestinationFormat == "JSON" {
     exportTableAsJSON(TemporalDataset, bq2gcs.Name, bq2gcs.GCSOutputFolder)
   } else {
@@ -64,7 +63,6 @@ func makeQuery(sql, dstTableID string) error {
   }
   defer client.Close()
 
-  return nil
   // Running the query
   q := client.Query(sql)
   q.QueryConfig.Dst = client.Dataset(TemporalDataset).Table(dstTableID)

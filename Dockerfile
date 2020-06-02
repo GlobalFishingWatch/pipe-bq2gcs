@@ -29,18 +29,16 @@ RUN apt-get -qqy update && apt-get install -qqy \
     apt-get install -y google-cloud-sdk=${CLOUD_SDK_VERSION}-0 \
        && gcloud --version
 
-#===+GoLang
+# Install go
 ENV GOLANG_VERSION="go1.14.3.linux-amd64"
 ENV PATH /usr/local/go/bin:$PATH
-RUN wget -q https://dl.google.com/go/${GOLANG_VERSION}.tar.gz && \
-    tar -C /usr/local -xzf ${GOLANG_VERSION}.tar.gz && \
-    rm -f ${GOLANG_VERSION}.tar.gz
-# Must be defined after installing go.
 ENV GOPATH=/opt/project/go
 ENV GOGFW=$GOPATH/src/github.com/GlobalFishingWatch
 ENV GOBQ2GCS=$GOGFW/pipe-bq2gcs
 ENV PATH $GOPATH/bin:$PATH
-#===-GoLang
+RUN wget -q https://dl.google.com/go/${GOLANG_VERSION}.tar.gz && \
+    tar -C /usr/local -xzf ${GOLANG_VERSION}.tar.gz && \
+    rm -f ${GOLANG_VERSION}.tar.gz
 
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]
@@ -52,14 +50,11 @@ COPY . /opt/project
 # Required to build the Docker Image
 RUN pip install -r requirements.txt
 RUN pip install -e .
-
-# Setup the entrypoint for quickly executing the pipelines
-# ENTRYPOINT ["scripts/run.sh"]
-#===+GoLang
-ENTRYPOINT ["go/bin/pipe-bq2gcs"]
 RUN go get -u cloud.google.com/go/bigquery && \
     mkdir -p $GOGFW && \
     ln -s /opt/project/src/ $GOBQ2GCS && \
     cd $GOBQ2GCS && \
     go install
-#===-GoLang
+
+# Setup the entrypoint for quickly executing the pipelines
+ENTRYPOINT ["go/bin/pipe-bq2gcs"]
