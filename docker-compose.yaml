@@ -4,7 +4,6 @@ services:
     image: gfw/pipe-bq2gcs
     build: .
     volumes:
-      - ".:/opt/project"
       - "gcp:/root/.config/"
 
   gcloud:
@@ -19,7 +18,6 @@ services:
     build: .
     entrypoint: /bin/bash
     volumes:
-      - ".:/opt/project"
       - "gcp:/root/.config/"
 
 # Use an external named volume so that we can share gcp auth across containers
