@@ -70,11 +70,16 @@ echo "  Inserted results in table ${TEMPORAL_TABLE}"
 # Export the results to GCS.
 #################################################################
 EXTENSION="csv"
-EXTRACT_PARAMS="--compression ${COMPRESSION}"
+EXTRACT_PARAMS=""
 if [ "${DESTINATION_FORMAT}" != "CSV" ]
 then
   EXTENSION="json"
-  EXTRACT_PARAMS="${EXTRACT_PARAMS} --destination_format ${DESTINATION_FORMAT}"
+  EXTRACT_PARAMS="--destination_format ${DESTINATION_FORMAT}"
+fi
+if [ "${COMPRESSION}" != "NONE" ]
+then
+  EXTRACT_PARAMS="${EXTRACT_PARAMS} --compression ${COMPRESSION}"
+  EXTENSION="${EXTENSION}.${COMPRESSION,,}"
 fi
 GCS_PATH=${GCS_OUTPUT_FOLDER}/${NAME}.${EXTENSION}
 bq extract ${EXTRACT_PARAMS} ${TEMPORAL_TABLE} ${GCS_PATH}
