@@ -27,6 +27,11 @@
               "type": "string",
               "default": "CSV",
               "enum": ["CSV", "NEWLINE_DELIMITED_JSON"]
+            },
+            "compression": {
+              "type": "string",
+              "default": "NONE",
+              "enum": ["GZIP", "DEFLATE", "SNAPPY", "NONE"]
             }
           },
           "required": [

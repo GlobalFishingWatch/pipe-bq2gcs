@@ -42,25 +42,6 @@ def table_custom_check(jinja_query):
         on_failure_callback=config_tools.failure_callback_gfw
     )
 
-# def is_partitioned_table(project_id, dataset_id, table_id):
-#     return BigQueryCheckOperator(
-#         task_id='is_partitioned_table',
-#         project_id=project_id,
-#         dataset_id=dataset_id,
-#         sql='SELECT'
-#               'is_partitioning_column'
-#             'FROM'
-#               '${dataset_id}.INFORMATION_SCHEMA.COLUMNS'
-#             'WHERE'
-#               'table_name = ${table_id}'
-#               'AND is_partitioning_column = "YES"'
-#         .format(dataset_id, table_id),
-#         retries=2*24*1,                        # Retries 3 days with 30 minutes.
-#         execution_timeout=timedelta(days=1),   # TimeOut of 3 days.
-#         retry_delay=timedelta(minutes=30),     # Delay in retries 30 minutes.
-#         max_retry_delay=timedelta(minutes=30), # Max Delay in retries 30 minutes
-#         on_failure_callback=config_tools.failure_callback_gfw
-#     )
 
 class PipeBq2GcsDagFactory(DagFactory):
 
@@ -98,6 +79,7 @@ class PipeBq2GcsDagFactory(DagFactory):
         export_config=self.config['export_config']
         export_config['jinja_query_parsed']=self.jinja_eval(export_config['jinja_query'], date_ranges.split(","))
         export_config['output_format']=export_config.get('output_format','CSV')
+        export_config['compression']=export_config.get('compression','NONE')
         table_path=export_config['sensor_jinja_query'].split('.')
 
         with DAG(dag_id, schedule_interval=self.schedule_interval, default_args=self.default_args) as dag:
@@ -135,7 +117,9 @@ class PipeBq2GcsDagFactory(DagFactory):
                              '{}_{}_{}'.format(export_config['name'], mode, self.config['ds_nodash']),
                              '{jinja_query_parsed}'.format(**export_config).format(**self.config),
                              '{gcs_output_folder}'.format(**export_config),
-                             '{output_format}'.format(**export_config)]
+                             '{output_format}'.format(**export_config),
+                             '{temp_dataset}'.format(**self.config),
+                             '{compression}'.format(**export_config)]
             })
 
 

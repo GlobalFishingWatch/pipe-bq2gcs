@@ -17,6 +17,7 @@ RUN apt-get -qqy update && apt-get install -qqy \
         lsb-release \
         openssh-client \
         git \
+        uuid-runtime \
         make \
         gnupg && \
     pip install -U crcmod && \
@@ -27,16 +28,6 @@ RUN apt-get -qqy update && apt-get install -qqy \
     apt-get update && \
     apt-get install -y google-cloud-sdk=${CLOUD_SDK_VERSION}-0 \
        && gcloud --version
-
-#GoLang
-# ENV GOLANG_VERSION="go1.14.linux-amd64"
-# RUN wget -q https://dl.google.com/go/${GOLANG_VERSION}.tar.gz && \
-#     tar -C /usr/local -xzf ${GOLANG_VERSION}.tar.gz && \
-#     rm -f ${GOLANG_VERSION}.tar.gz
-# ENV PATH /usr/local/go/bin:$PATH
-# ENV GOPATH /usr/local/go/workspace
-# ENV PATH /usr/local/go/workspace/bin:$PATH
-# ENTRYPOINT ["scripts/run"]
 
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]
