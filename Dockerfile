@@ -17,6 +17,7 @@ RUN apt-get -qqy update && apt-get install -qqy \
         lsb-release \
         openssh-client \
         git \
+        vim \
         uuid-runtime \
         make \
         gnupg && \
@@ -51,10 +52,11 @@ COPY . /opt/project
 RUN pip install -r requirements.txt
 RUN pip install -e .
 RUN go get -u cloud.google.com/go/bigquery && \
+    go get github.com/google/uuid && \
     mkdir -p $GOGFW && \
     ln -s /opt/project/src/ $GOBQ2GCS && \
     cd $GOBQ2GCS && \
     go install
 
 # Setup the entrypoint for quickly executing the pipelines
-ENTRYPOINT ["go/bin/pipe-bq2gcs"]
+ENTRYPOINT ["pipe-bq2gcs"]

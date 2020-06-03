@@ -4,8 +4,10 @@ import (
   "context"
   "fmt"
   "log"
+  "strings"
 
   "cloud.google.com/go/bigquery"
+  "github.com/google/uuid"
 )
 
 type Bq2gcs struct{
@@ -13,17 +15,27 @@ type Bq2gcs struct{
   JinjaQuery string
   GCSOutputFolder string
   DestinationFormat string
+  TemporalDataset string
+  Compression string
 }
 
 const ProjectId = "world-fishing-827"
-const TemporalDataset = "0_ttl24h"
+
+var CompressionLookup = map[string]bigquery.Compression{
+"NONE":    bigquery.None,
+"GZIP":    bigquery.Gzip,
+"DEFLATE": bigquery.Deflate,
+"SNAPPY":  bigquery.Snappy,
+}
 
 func usageMessage() {
-  fmt.Println("\nUsage:\nbq2gcs NAME JINJA_QUERY GCS_OUTPUT_FOLDER DESTINATION_FORMAT\n")
+  fmt.Println("\nUsage:\nbq2gcs NAME JINJA_QUERY GCS_OUTPUT_FOLDER DESTINATION_FORMAT TEMPORAL_DATASET COMPRESSION\n")
   fmt.Println("NAME: Name to locate the kind of export and also used as temporal table name.")
   fmt.Println("JINJA_QUERY: Jinja query to get the data to export.")
   fmt.Println("GCS_OUTPUT_FOLDER: The Google Cloud Storage destination folder where will be stored the data.")
   fmt.Println("DESTINATION_FORMAT: Destination format of the file.")
+  fmt.Println("TEMPORAL_DATASET: Temporal dataset used to store the results of the jinja query.")
+  fmt.Println("COMPRESSION: Kind of compression applied to the output file.")
   fmt.Println()
 }
 
@@ -33,27 +45,29 @@ func (bq2gcs Bq2gcs) String() string {
 
 func (bq2gcs *Bq2gcs) Run() {
   fmt.Println("This is the Run method")
+  bq2gcs.Name = strings.ReplaceAll(bq2gcs.Name, "-", "_")
 
   fmt.Println("Run the Jinja query and save it in a temporal table.")
-  fmt.Printf("temporalTable=%v.%s\n", TemporalDataset, bq2gcs.Name)
+  uuidInstance := strings.ReplaceAll(uuid.New().String(), "-", "_")
+  fmt.Printf("temporalTable=%v.%s\n", bq2gcs.TemporalDataset, uuidInstance)
 
   fmt.Println("=== Evaluation of the jinja ===")
   fmt.Println(bq2gcs.JinjaQuery)
   fmt.Println("=== Evaluation of the jinja ===")
 
-  err := makeQuery(bq2gcs.JinjaQuery, bq2gcs.Name)
+  err := makeQuery(bq2gcs.JinjaQuery, bq2gcs.TemporalDataset, uuidInstance)
   if err != nil {
     fmt.Println("Unable to run the query and store the data in the temporal table. %v", err)
   }
 
   if bq2gcs.DestinationFormat == "JSON" {
-    exportTableAsJSON(TemporalDataset, bq2gcs.Name, bq2gcs.GCSOutputFolder)
+    exportTableAsJSON(bq2gcs, uuidInstance)
   } else {
-    exportTableAsCSV(TemporalDataset, bq2gcs.Name, bq2gcs.GCSOutputFolder)
+    exportTableAsCSV(bq2gcs, uuidInstance)
   }
 }
 
-func makeQuery(sql, dstTableID string) error {
+func makeQuery(sql, dstDataset, dstTableID string) error {
   // Initializing the BigQuery Client
   ctx := context.Background()
 
@@ -65,7 +79,7 @@ func makeQuery(sql, dstTableID string) error {
 
   // Running the query
   q := client.Query(sql)
-  q.QueryConfig.Dst = client.Dataset(TemporalDataset).Table(dstTableID)
+  q.QueryConfig.Dst = client.Dataset(dstDataset).Table(dstTableID)
 
   // Start the job.
   job, err := q.Run(ctx)
@@ -81,7 +95,7 @@ func makeQuery(sql, dstTableID string) error {
   return nil
 }
 
-func exportTableAsCSV(srcDataset, srcTable, gcsURI string) error {
+func exportTableAsCSV(bq2gcs *Bq2gcs, srcTable string) error {
   ctx := context.Background()
   client, err := bigquery.NewClient(ctx, ProjectId)
   if err != nil {
@@ -89,11 +103,16 @@ func exportTableAsCSV(srcDataset, srcTable, gcsURI string) error {
   }
   defer client.Close()
 
-  gcsRef := bigquery.NewGCSReference(gcsURI + srcTable + ".csv")
+  name := bq2gcs.GCSOutputFolder + "/" + bq2gcs.Name + ".csv"
+  if bq2gcs.Compression != "NONE" {
+    name+="."+strings.ToLower(bq2gcs.Compression)
+  }
+  gcsRef := bigquery.NewGCSReference(name)
   gcsRef.FieldDelimiter = ","
+  gcsRef.Compression = CompressionLookup[bq2gcs.Compression]
 
-  extractor := client.DatasetInProject(ProjectId, srcDataset).Table(srcTable).ExtractorTo(gcsRef)
-  extractor.DisableHeader = true
+  extractor := client.DatasetInProject(ProjectId, bq2gcs.TemporalDataset).Table(srcTable).ExtractorTo(gcsRef)
+  extractor.DisableHeader = false
 
   extractor.Location = "US"
 
@@ -111,7 +130,7 @@ func exportTableAsCSV(srcDataset, srcTable, gcsURI string) error {
   return nil
 }
 
-func exportTableAsJSON(srcDataset, srcTable, gcsURI string) error {
+func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) error {
   ctx := context.Background()
   client, err := bigquery.NewClient(ctx, ProjectId)
   if err != nil {
@@ -119,11 +138,16 @@ func exportTableAsJSON(srcDataset, srcTable, gcsURI string) error {
   }
   defer client.Close()
 
-  gcsRef := bigquery.NewGCSReference(gcsURI + srcTable + ".json")
-  gcsRef.DestinationFormat = "JSON"
+  name := bq2gcs.GCSOutputFolder + "/" + bq2gcs.Name + ".json"
+  if bq2gcs.Compression != "NONE" {
+    name+="."+strings.ToLower(bq2gcs.Compression)
+  }
+  gcsRef := bigquery.NewGCSReference(name)
+  gcsRef.DestinationFormat = bigquery.JSON
+  gcsRef.Compression = CompressionLookup[bq2gcs.Compression]
 
-  extractor := client.DatasetInProject(ProjectId, srcDataset).Table(srcTable).ExtractorTo(gcsRef)
-  extractor.DisableHeader = true
+  extractor := client.DatasetInProject(ProjectId, bq2gcs.TemporalDataset).Table(srcTable).ExtractorTo(gcsRef)
+  extractor.DisableHeader = false
 
   extractor.Location = "US"
 

@@ -27,7 +27,7 @@ func main() {
     case "bq2gcs":
       //Validation
       bq2gcsArgs:=args[1:]
-      if len(bq2gcsArgs) != 4 {
+      if len(bq2gcsArgs) != 6 {
         usageMessage()
         os.Exit(1)
       }
@@ -35,7 +35,9 @@ func main() {
         bq2gcsArgs[0],
         bq2gcsArgs[1],
         bq2gcsArgs[2],
-        bq2gcsArgs[3]}
+        bq2gcsArgs[3],
+        bq2gcsArgs[4],
+        bq2gcsArgs[5]}
       bq2gcs.Run()
     default:
       informAndExit()
