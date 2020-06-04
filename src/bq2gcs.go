@@ -60,10 +60,10 @@ func (bq2gcs *Bq2gcs) Run() {
   }
 
   var filename string
-  if bq2gcs.DestinationFormat == "JSON" {
-    filename, err = exportTableAsJSON(bq2gcs, uuidInstance)
-  } else {
+  if bq2gcs.DestinationFormat == "CSV" {
     filename, err = exportTableAsCSV(bq2gcs, uuidInstance)
+  } else {
+    filename, err = exportTableAsJSON(bq2gcs, uuidInstance)
   }
   if err != nil {
     log.Fatalf("Error get while extracting the data %v", err)
