@@ -2,6 +2,7 @@ package main
 
 import (
   "context"
+  "encoding/json"
   "fmt"
   "log"
   "strings"
@@ -39,14 +40,12 @@ func usageMessage() {
   fmt.Println()
 }
 
-func (bq2gcs Bq2gcs) String() string {
-  return fmt.Sprintf("%v", bq2gcs)
-}
-
 func (bq2gcs *Bq2gcs) Run() {
   fmt.Println("This is the Run method")
   bq2gcs.Name = strings.ReplaceAll(bq2gcs.Name, "-", "_")
 
+  bq2gcsJson, _ := json.Marshal(bq2gcs)
+  fmt.Println(string(bq2gcsJson))
   fmt.Println("Run the Jinja query and save it in a temporal table.")
   uuidInstance := strings.ReplaceAll(uuid.New().String(), "-", "_")
   fmt.Printf("temporalTable=%v.%s\n", bq2gcs.TemporalDataset, uuidInstance)
@@ -60,11 +59,16 @@ func (bq2gcs *Bq2gcs) Run() {
     fmt.Println("Unable to run the query and store the data in the temporal table. %v", err)
   }
 
+  var filename string
   if bq2gcs.DestinationFormat == "JSON" {
-    exportTableAsJSON(bq2gcs, uuidInstance)
+    filename, err = exportTableAsJSON(bq2gcs, uuidInstance)
   } else {
-    exportTableAsCSV(bq2gcs, uuidInstance)
+    filename, err = exportTableAsCSV(bq2gcs, uuidInstance)
   }
+  if err != nil {
+    log.Fatalf("Error get while extracting the data %v", err)
+  }
+  fmt.Printf("The data was extracted successfully in %v\n", filename)
 }
 
 func makeQuery(sql, dstDataset, dstTableID string) error {
@@ -95,11 +99,11 @@ func makeQuery(sql, dstDataset, dstTableID string) error {
   return nil
 }
 
-func exportTableAsCSV(bq2gcs *Bq2gcs, srcTable string) error {
+func exportTableAsCSV(bq2gcs *Bq2gcs, srcTable string) (string, error) {
   ctx := context.Background()
   client, err := bigquery.NewClient(ctx, ProjectId)
   if err != nil {
-    return fmt.Errorf("bigquery.NewClient: %v", err)
+    return "",fmt.Errorf("bigquery.NewClient: %v", err)
   }
   defer client.Close()
 
@@ -118,23 +122,23 @@ func exportTableAsCSV(bq2gcs *Bq2gcs, srcTable string) error {
 
   job, err := extractor.Run(ctx)
   if err != nil {
-    return err
+    return "",err
   }
   status, err := job.Wait(ctx)
   if err != nil {
-    return err
+    return "",err
   }
   if err := status.Err(); err != nil {
-    return err
+    return "",err
   }
-  return nil
+  return name, nil
 }
 
-func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) error {
+func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) (string, error) {
   ctx := context.Background()
   client, err := bigquery.NewClient(ctx, ProjectId)
   if err != nil {
-    return fmt.Errorf("bigquery.NewClient: %v", err)
+    return "",fmt.Errorf("bigquery.NewClient: %v", err)
   }
   defer client.Close()
 
@@ -153,14 +157,14 @@ func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) error {
 
   job, err := extractor.Run(ctx)
   if err != nil {
-    return err
+    return "",err
   }
   status, err := job.Wait(ctx)
   if err != nil {
-    return err
+    return "",err
   }
   if err := status.Err(); err != nil {
-    return err
+    return "",err
   }
-  return nil
+  return name, nil
 }

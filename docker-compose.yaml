@@ -18,6 +18,7 @@ services:
     build: .
     entrypoint: /bin/bash
     volumes:
+      - "./src:/opt/project/src"
       - "gcp:/root/.config/"
 
 # Use an external named volume so that we can share gcp auth across containers
