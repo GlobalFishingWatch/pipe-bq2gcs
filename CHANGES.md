@@ -13,6 +13,6 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 ### Added
 
 * [gfw-eng-tasks#87](https://github.com/GlobalFishingWatch/gfw-eng-tasks/issues/87): Adds
-    * Initial implementation.
-    * Configures Dockerfile related with the needs of this project.
+    * Initial implementation made in bash and go code.
+    * Configures Dockerfile for bash and for go code.
     * Define a export_configis to specified the paramaters to share.
