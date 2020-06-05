@@ -17,6 +17,7 @@ RUN apt-get -qqy update && apt-get install -qqy \
         lsb-release \
         openssh-client \
         git \
+        vim \
         uuid-runtime \
         make \
         gnupg && \
@@ -29,6 +30,17 @@ RUN apt-get -qqy update && apt-get install -qqy \
     apt-get install -y google-cloud-sdk=${CLOUD_SDK_VERSION}-0 \
        && gcloud --version
 
+# Install go
+ENV GOLANG_VERSION="go1.14.3.linux-amd64"
+ENV PATH /usr/local/go/bin:$PATH
+ENV GOPATH=/opt/project/go
+ENV GOGFW=$GOPATH/src/github.com/GlobalFishingWatch
+ENV GOBQ2GCS=$GOGFW/pipe-bq2gcs
+ENV PATH $GOPATH/bin:$PATH
+RUN wget -q https://dl.google.com/go/${GOLANG_VERSION}.tar.gz && \
+    tar -C /usr/local -xzf ${GOLANG_VERSION}.tar.gz && \
+    rm -f ${GOLANG_VERSION}.tar.gz
+
 # Setup a volume for configuration and auth data
 VOLUME ["/root/.config"]
 
@@ -39,6 +51,12 @@ COPY . /opt/project
 # Required to build the Docker Image
 RUN pip install -r requirements.txt
 RUN pip install -e .
+RUN go get -u cloud.google.com/go/bigquery && \
+    go get github.com/google/uuid && \
+    mkdir -p $GOGFW && \
+    ln -s /opt/project/src/ $GOBQ2GCS && \
+    cd $GOBQ2GCS && \
+    go install
 
 # Setup the entrypoint for quickly executing the pipelines
-ENTRYPOINT ["scripts/run.sh"]
+ENTRYPOINT ["pipe-bq2gcs"]

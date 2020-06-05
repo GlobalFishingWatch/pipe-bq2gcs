@@ -17,19 +17,6 @@ import re
 
 PIPELINE = "pipe_bq2gcs"
 
-def table_partition_check(project_id, dataset_id, table_id, date):
-    return BigQueryCheckOperator(
-        task_id='partition_check_{}'.format(table_id),
-        project_id=project_id,
-        dataset_id=dataset_id,
-        sql='SELECT COUNT(*) FROM [{}.{}${}]'.format(dataset_id, table_id, date),
-        retries=2*24*3,                        # Retries 3 days with 30 minutes.
-        execution_timeout=timedelta(days=3),   # TimeOut of 3 days.
-        retry_delay=timedelta(minutes=30),     # Delay in retries 30 minutes.
-        max_retry_delay=timedelta(minutes=30), # Max Delay in retries 30 minutes
-        on_failure_callback=config_tools.failure_callback_gfw
-    )
-
 def table_custom_check(jinja_query):
     return BigQueryCheckOperator(
         task_id='custom_check',
@@ -91,11 +78,13 @@ class PipeBq2GcsDagFactory(DagFactory):
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
-                sensor = table_partition_check(
-                    '{project_id}'.format(**self.config),
-                    '{}'.format(table_path[0]),
-                    '{}'.format(table_path[1]),
-                    '{ds_nodash}'.format(**self.config))
+                sensor = self.table_check(
+                    task_id='partition_check_{}'.format(table_id),
+                    project='{project_id}'.format(**self.config),
+                    dataset='{}'.format(table_path[0]),
+                    table='{}'.format(table_path[1]),
+                    date='{ds_nodash}'.format(**self.config)
+                )
             else:
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 sensor = self.table_sensor(
