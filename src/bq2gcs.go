@@ -29,6 +29,13 @@ var CompressionLookup = map[string]bigquery.Compression{
 "SNAPPY":  bigquery.Snappy,
 }
 
+var CompressionFileExtensionLookup = map[string]string{
+"NONE":    "",
+"GZIP":    ".gz",
+"DEFLATE": ".zz",
+"SNAPPY":  ".snappy",
+}
+
 func usageMessage() {
   fmt.Println("\nUsage:\nbq2gcs NAME JINJA_QUERY GCS_OUTPUT_FOLDER DESTINATION_FORMAT TEMPORAL_DATASET COMPRESSION\n")
   fmt.Println("NAME: Name to locate the kind of export and also used as temporal table name.")
@@ -109,7 +116,7 @@ func exportTableAsCSV(bq2gcs *Bq2gcs, srcTable string) (string, error) {
 
   name := bq2gcs.GCSOutputFolder + "/" + bq2gcs.Name + ".csv"
   if bq2gcs.Compression != "NONE" {
-    name+="."+strings.ToLower(bq2gcs.Compression)
+    name+=strings.ToLower(CompressionFileExtensionLookup[bq2gcs.Compression])
   }
   gcsRef := bigquery.NewGCSReference(name)
   gcsRef.FieldDelimiter = ","
@@ -144,7 +151,7 @@ func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) (string, error) {
 
   name := bq2gcs.GCSOutputFolder + "/" + bq2gcs.Name + ".json"
   if bq2gcs.Compression != "NONE" {
-    name+="."+strings.ToLower(bq2gcs.Compression)
+    name+=strings.ToLower(CompressionFileExtensionLookup[bq2gcs.Compression])
   }
   gcsRef := bigquery.NewGCSReference(name)
   gcsRef.DestinationFormat = bigquery.JSON
