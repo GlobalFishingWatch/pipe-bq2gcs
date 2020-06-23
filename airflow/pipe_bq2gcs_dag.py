@@ -79,7 +79,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
                 sensor = self.table_check(
-                    task_id='partition_check_{}'.format(table_id),
+                    task_id='partition_check_{}'.format(table_path[1]),
                     project='{project_id}'.format(**self.config),
                     dataset='{}'.format(table_path[0]),
                     table='{}'.format(table_path[1]),
