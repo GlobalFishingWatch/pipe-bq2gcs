@@ -52,6 +52,7 @@ COPY . /opt/project
 RUN pip install -r requirements.txt
 RUN pip install -e .
 RUN go get -u cloud.google.com/go/bigquery && \
+    go get -u cloud.google.com/go/storage && \
     go get github.com/google/uuid && \
     mkdir -p $GOGFW && \
     ln -s /opt/project/src/ $GOBQ2GCS && \

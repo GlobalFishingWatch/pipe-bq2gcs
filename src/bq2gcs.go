@@ -5,9 +5,11 @@ import (
   "encoding/json"
   "fmt"
   "log"
+  "regexp"
   "strings"
 
   "cloud.google.com/go/bigquery"
+  "cloud.google.com/go/storage"
   "github.com/google/uuid"
 )
 
@@ -76,6 +78,15 @@ func (bq2gcs *Bq2gcs) Run() {
     log.Fatalf("Error get while extracting the data %v", err)
   }
   fmt.Printf("The data was extracted successfully in %v\n", filename)
+  // update the metadata.
+  re := regexp.MustCompile(`gs://([^/]*)/(.*)`)
+  gcsPathSlice := re.FindStringSubmatch(filename)
+  metadata, err := updateMetadata(gcsPathSlice[1],gcsPathSlice[2])
+  if err != nil {
+    log.Fatalf("Error get while updating the metadata  %v", err)
+  }
+  metadataJson, _ := json.Marshal(&metadata)
+  fmt.Printf("The metadata was updated successfully in %v\n", string(metadataJson))
 }
 
 func makeQuery(sql, dstDataset, dstTableID string) error {
@@ -174,4 +185,22 @@ func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) (string, error) {
     return "",err
   }
   return name, nil
+}
+
+func updateMetadata(bucket, obj string) (*storage.ObjectAttrs, error) {
+  ctx := context.Background()
+  client, err := storage.NewClient(ctx)
+  if err != nil {
+    return nil,fmt.Errorf("bigquery.NewClient: %v", err)
+  }
+  // Change only the content type of the object.
+  objAttrs, err := client.Bucket(bucket).Object(obj).Update(
+    ctx, storage.ObjectAttrsToUpdate{
+      ContentType:        "application/octet-stream",
+      ContentEncoding:    "gzip",
+    })
+  if err != nil {
+      return nil,err
+  }
+  return objAttrs, err
 }
