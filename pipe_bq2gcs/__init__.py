@@ -2,7 +2,7 @@
 Read tables for Bigquery and loads to gcs
 """
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 __author__ = 'Matias Piano'
 __email__ = 'matias@globalfishingwatch.org'
 __source__ = 'https://github.com/GlobalFishingWatch/pipe-bq2gcs'
