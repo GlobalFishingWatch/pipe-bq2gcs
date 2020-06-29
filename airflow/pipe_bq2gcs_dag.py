@@ -79,7 +79,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
                 sensor = self.table_check(
-                    task_id='partition_check_{}'.format(table_id),
+                    task_id='partition_check_{}'.format(table_path[1]),
                     project='{project_id}'.format(**self.config),
                     dataset='{}'.format(table_path[0]),
                     table='{}'.format(table_path[1]),
@@ -103,7 +103,7 @@ class PipeBq2GcsDagFactory(DagFactory):
                 'name':'bq2gcs-{name}'.format(**export_config),
                 'dag':dag,
                 'arguments':['bq2gcs',
-                             '{}_{}_{}'.format(export_config['name'], mode, self.config['ds_nodash']),
+                             '{}_{}'.format(mode, self.config['ds_nodash']),
                              '{jinja_query_parsed}'.format(**export_config).format(**self.config),
                              '{gcs_output_folder}'.format(**export_config),
                              '{output_format}'.format(**export_config),

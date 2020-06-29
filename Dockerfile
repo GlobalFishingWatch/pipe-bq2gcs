@@ -6,7 +6,7 @@ WORKDIR /opt/project
 
 # Download and install google cloud. See the dockerfile at
 # https://hub.docker.com/r/google/cloud-sdk/~/dockerfile/
-ENV CLOUD_SDK_VERSION=292.0.0
+ENV CLOUD_SDK_VERSION=297.0.1
 ENV PATH "$PATH:/opt/google-cloud-sdk/bin/"
 RUN apt-get -qqy update && apt-get install -qqy \
         curl \
@@ -52,6 +52,7 @@ COPY . /opt/project
 RUN pip install -r requirements.txt
 RUN pip install -e .
 RUN go get -u cloud.google.com/go/bigquery && \
+    go get -u cloud.google.com/go/storage && \
     go get github.com/google/uuid && \
     mkdir -p $GOGFW && \
     ln -s /opt/project/src/ $GOBQ2GCS && \

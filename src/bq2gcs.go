@@ -5,9 +5,11 @@ import (
   "encoding/json"
   "fmt"
   "log"
+  "regexp"
   "strings"
 
   "cloud.google.com/go/bigquery"
+  "cloud.google.com/go/storage"
   "github.com/google/uuid"
 )
 
@@ -27,6 +29,13 @@ var CompressionLookup = map[string]bigquery.Compression{
 "GZIP":    bigquery.Gzip,
 "DEFLATE": bigquery.Deflate,
 "SNAPPY":  bigquery.Snappy,
+}
+
+var CompressionFileExtensionLookup = map[string]string{
+"NONE":    "",
+"GZIP":    ".gz",
+"DEFLATE": ".zz",
+"SNAPPY":  ".snappy",
 }
 
 func usageMessage() {
@@ -69,6 +78,15 @@ func (bq2gcs *Bq2gcs) Run() {
     log.Fatalf("Error get while extracting the data %v", err)
   }
   fmt.Printf("The data was extracted successfully in %v\n", filename)
+  // update the metadata.
+  re := regexp.MustCompile(`gs://([^/]*)/(.*)`)
+  gcsPathSlice := re.FindStringSubmatch(filename)
+  metadata, err := updateMetadata(gcsPathSlice[1],gcsPathSlice[2])
+  if err != nil {
+    log.Fatalf("Error get while updating the metadata  %v", err)
+  }
+  metadataJson, _ := json.Marshal(&metadata)
+  fmt.Printf("The metadata was updated successfully in %v\n", string(metadataJson))
 }
 
 func makeQuery(sql, dstDataset, dstTableID string) error {
@@ -109,7 +127,7 @@ func exportTableAsCSV(bq2gcs *Bq2gcs, srcTable string) (string, error) {
 
   name := bq2gcs.GCSOutputFolder + "/" + bq2gcs.Name + ".csv"
   if bq2gcs.Compression != "NONE" {
-    name+="."+strings.ToLower(bq2gcs.Compression)
+    name+=strings.ToLower(CompressionFileExtensionLookup[bq2gcs.Compression])
   }
   gcsRef := bigquery.NewGCSReference(name)
   gcsRef.FieldDelimiter = ","
@@ -144,7 +162,7 @@ func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) (string, error) {
 
   name := bq2gcs.GCSOutputFolder + "/" + bq2gcs.Name + ".json"
   if bq2gcs.Compression != "NONE" {
-    name+="."+strings.ToLower(bq2gcs.Compression)
+    name+=strings.ToLower(CompressionFileExtensionLookup[bq2gcs.Compression])
   }
   gcsRef := bigquery.NewGCSReference(name)
   gcsRef.DestinationFormat = bigquery.JSON
@@ -167,4 +185,21 @@ func exportTableAsJSON(bq2gcs *Bq2gcs, srcTable string) (string, error) {
     return "",err
   }
   return name, nil
+}
+
+func updateMetadata(bucket, obj string) (*storage.ObjectAttrs, error) {
+  ctx := context.Background()
+  client, err := storage.NewClient(ctx)
+  if err != nil {
+    return nil,fmt.Errorf("bigquery.NewClient: %v", err)
+  }
+  // Change only the content type of the object.
+  objAttrs, err := client.Bucket(bucket).Object(obj).Update(
+    ctx, storage.ObjectAttrsToUpdate{
+      ContentType:        "application/octet-stream",
+    })
+  if err != nil {
+      return nil,err
+  }
+  return objAttrs, err
 }
