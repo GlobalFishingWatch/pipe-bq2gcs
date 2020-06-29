@@ -14,7 +14,7 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 * [gfw-eng-tasks#122](https://github.com/GlobalFishingWatch/gfw-eng-tasks/issues/122): Adds
     * Forces metadata for gz files in GCS, set Content-Type:
-    * application/octet-stream and Content-Encoding: gzip
+    * application/octet-stream
 
 ### Changed
 

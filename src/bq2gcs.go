@@ -197,7 +197,6 @@ func updateMetadata(bucket, obj string) (*storage.ObjectAttrs, error) {
   objAttrs, err := client.Bucket(bucket).Object(obj).Update(
     ctx, storage.ObjectAttrsToUpdate{
       ContentType:        "application/octet-stream",
-      ContentEncoding:    "gzip",
     })
   if err != nil {
       return nil,err
