@@ -23,6 +23,8 @@ This project requires to complete the export-configs variable in Airflow Variabl
 
 The main structure needed is:
 
+* `days_to_retry`: [OPTIONAL] let us configure the amount of days to retry the task for a particular configuration.
+* `compression`: [OPTIONAL] let us output a compressed file instead of a raw file. Options are ["GZIP", "DEFLATE", "SNAPPY", "NONE"].
 * `gcs_output_folder`: This is the output folder where you want to put the extracted files.
 * `jinja_query`: This is the dynamic jinja where you can use * `name`: This is the output name of the file and also is used as a table name. As table will be parsed to use `_` instead of `-`.
 * `sensor_jinja_query`: This is the dynamic jinja where you can use the keywords already mentioned. Useful to put the query to sensor the next extraction.
@@ -101,6 +103,7 @@ gs://scratch-matias/bq2gcs/matias_partitioning_test_daily_20170101.csv
 ```json
 {
 	"export_configs": [{
+		"compression": "GZIP",
 		"gcs_output_folder": "gs://data-download-portal-development/indonesia_v20200320/monthly",
 		"jinja_query": "select * from `pipe_indonesia_production_v20200320.messages_scored_*` where timestamp >= TIMESTAMP(\"{{ start_yyyymmdd }}\") and timestamp <= TIMESTAMP(\"{{ end_yyyymmdd }}\") and nnet_score != 0",
 		"name": "indonesia_v20200320",
@@ -111,7 +114,7 @@ gs://scratch-matias/bq2gcs/matias_partitioning_test_daily_20170101.csv
 }
 ```
 
-Here the `sensor_type` is custom, this means that the field `sensor_jinja_table` is a custom sensor jinja query. There will be a task inside the DAG assigned to check this sensor and if it works well, then is going to run the `jinja_query` replacing the jinja keywords and exported the results in a file under the `gcs_output_folder` path and who name is the property `name` plus the schedule interval mode and the date that begins. Check that also there is a field `output_format` that can have CSV and NEWLINE_DELIMITED_JSON as values, NEWLINE_DELIMITED_JSON is useful for nested schemas like this example.
+Here the `sensor_type` is custom, this means that the field `sensor_jinja_table` is a custom sensor jinja query. There will be a task inside the DAG assigned to check this sensor and if it works well, then is going to run the `jinja_query` replacing the jinja keywords and exported the results in a file under the `gcs_output_folder` path and who name is the property `name` plus the schedule interval mode and the date that begins. Check that also there is a field `output_format` that can have CSV and NEWLINE_DELIMITED_JSON as values, NEWLINE_DELIMITED_JSON is useful for nested schemas like this example. The optional field `compression` let us save it in a GZIP compressed file or one of the following list ["GZIP", "DEFLATE", "SNAPPY", "NONE"].
 Airflow Output
 ```
 DAG
