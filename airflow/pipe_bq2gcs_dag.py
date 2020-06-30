@@ -17,15 +17,15 @@ import re
 
 PIPELINE = "pipe_bq2gcs"
 
-def table_custom_check(jinja_query):
+def table_custom_check(jinja_query, days_to_retry):
     return BigQueryCheckOperator(
         task_id='custom_check',
         sql=jinja_query,
         use_legacy_sql=False,
-        retries=2*24*3,                        # Retries 3 days with 30 minutes.
-        execution_timeout=timedelta(days=3),   # TimeOut of 3 days.
-        retry_delay=timedelta(minutes=30),     # Delay in retries 30 minutes.
-        max_retry_delay=timedelta(minutes=30), # Max Delay in retries 30 minutes
+        retries=2*24*days_to_retry,                        # Retries 3 days with 30 minutes.
+        execution_timeout=timedelta(days=days_to_retry),   # TimeOut of 3 days.
+        retry_delay=timedelta(minutes=30),                 # Delay in retries 30 minutes.
+        max_retry_delay=timedelta(minutes=30),             # Max Delay in retries 30 minutes
         on_failure_callback=config_tools.failure_callback_gfw
     )
 
@@ -74,7 +74,7 @@ class PipeBq2GcsDagFactory(DagFactory):
             # Replace this if with a simple detect if the table is partitioned or not.
             if export_config['sensor_type']=='custom':
                 export_config['sensor_jinja_query_parsed']=self.jinja_eval(export_config['sensor_jinja_query'], date_ranges.split(","))
-                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config))
+                sensor = table_custom_check('{sensor_jinja_query_parsed}'.format(**export_config).format(**self.config), export_config.get('days_to_retry', 3))
             elif export_config['sensor_type'] == 'partitioning':
                 # Sharded expect to pass a dataset.table as sensor_jinja_query.
                 # Remind than later append the '$dsnodash' and make the query
