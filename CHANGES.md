@@ -8,6 +8,13 @@ Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to
 
 ## [Unreleased]
 
+## v0.0.3 - 2020-06-30
+
+### Added
+
+* [gfw-eng-tasks#123](https://github.com/GlobalFishingWatch/gfw-eng-tasks/issues/123): Adds
+    * the days_to_retry property to adjust the amount of days to retry for each case.
+
 ## v0.0.2 - 2020-06-28
 
 ### Added

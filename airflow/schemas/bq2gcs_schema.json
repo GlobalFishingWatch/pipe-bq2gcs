@@ -7,6 +7,9 @@
         {
           "type": "object",
           "properties": {
+            "days_to_retry": {
+              "type": "number"
+            },
             "gcs_output_folder": {
               "type": "string"
             },
