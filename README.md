@@ -9,6 +9,17 @@ Use an external named volume so that we can share gcp auth across containers
 Before first use, this volume must be manually created with
   `docker volume create --name=gcp`
 
+# Purpose
+
+The project Bq2gcs was build to help us in an easy way to run automates queries from BigQuery and have the results in GCS so then we can share that information with the rest.
+It uses Airflow to automate the tasks daily, monthly or yearly and can run over sharded or partitioned tables and also the query can be customized as you way.
+
+It is divided in 3 important steps.
+1. The first is check the information we want to get.
+2. The second gets that infomration.
+3. Export to GCS path of preference.
+
+
 # Instalation
 
 This project requires to complete the export-configs variable in Airflow Variables.
